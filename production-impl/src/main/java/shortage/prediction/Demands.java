@@ -1,7 +1,5 @@
 package shortage.prediction;
 
-import enums.DeliverySchema;
-
 import java.time.LocalDate;
 import java.util.Map;
 
@@ -21,23 +19,23 @@ public class Demands
 
     public static class DailyDemand
     {
-        private DeliverySchema deliverySchema;
         private long level;
+        private LevelOnDeliveryCalculation strategy;
 
-        public DailyDemand(DeliverySchema deliverySchema, long level)
+        public DailyDemand(long level, LevelOnDeliveryCalculation strategy)
         {
-            this.deliverySchema = deliverySchema;
             this.level = level;
-        }
-
-        public DeliverySchema getDeliverySchema()
-        {
-            return deliverySchema;
+            this.strategy = strategy;
         }
 
         public long getLevel()
         {
             return level;
+        }
+
+        public long calculateLevelOnDelivery(long level, long produced)
+        {
+            return strategy.calculate(level, getLevel(), produced);
         }
     }
 }
