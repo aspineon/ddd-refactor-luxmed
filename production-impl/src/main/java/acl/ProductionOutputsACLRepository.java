@@ -8,9 +8,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-class ProductionOutputsRepository {
+class ProductionOutputsACLRepository
+{
 
-    public ProductionOutputs createOutputs() {
+    public ProductionOutputs createOutputs()
+    {
         List<ProductionEntity> productions = null;
 
         Map<LocalDate, Long> outputs = productions.stream().collect(

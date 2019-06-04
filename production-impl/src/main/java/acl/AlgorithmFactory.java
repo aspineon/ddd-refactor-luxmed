@@ -19,16 +19,14 @@ class AlgorithmFactory implements IAlgorithmFactory
     private LocalDate today;
     private int daysAhead;
     private CurrentStock stock;
-    ProductionOutputsRepository productions;
-    private List<DemandEntity> demands;
+    ProductionOutputsACLRepository productions;
+    DemandsACLRepository demands;
 
     public AlgorithmFactory(LocalDate today, int daysAhead, CurrentStock stock, List<ProductionEntity> productions, List<DemandEntity> demands)
     {
         this.today = today;
         this.daysAhead = daysAhead;
         this.stock = stock;
-
-        this.demands = demands;
     }
 
     public Algorithm create()
@@ -38,7 +36,7 @@ class AlgorithmFactory implements IAlgorithmFactory
                 .collect(toList());
 
         ProductionOutputs outputs = productions.createOutputs();
-        Demands demandsPerDay = new Demands(demands);
+        Demands demandsPerDay = demands.createDemandsPerDay();
 
         return new Algorithm(stock, dates, outputs, demandsPerDay);
     }
