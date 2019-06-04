@@ -3,14 +3,10 @@ package tools;
 import entities.DemandEntity;
 import entities.ProductionEntity;
 import entities.ShortageEntity;
-import enums.DeliverySchema;
 import external.CurrentStock;
-import shortage.prediction.Demands;
-import shortage.prediction.ProductionPlan;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+import shortage.prediction.*;
 
 import java.time.LocalDate;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -42,62 +38,44 @@ public class ShortageFinder
     public static List<ShortageEntity> findShortages(LocalDate today, int daysAhead, CurrentStock stock,
                                                      List<ProductionEntity> productions, List<DemandEntity> demands)
     {
-        List<LocalDate> dates = Stream.iterate(today, date -> date.plusDays(1))
-                .limit(daysAhead)
-                .collect(toList());
 
-        ProductionPlan outputs = new ProductionPlan(productions);
-        Demands demandsPerDay = new Demands(demands);
+        AlgorithmFactory factory = new AlgorithmFactory(today, daysAhead, stock, productions, demands);
+        ShortagePredictionService service = new ShortagePredictionService(factory);
 
-        long level = stock.getLevel();
+        List<ShortageEntity> shortages = service.findShortages();
 
-        List<ShortageEntity> gap = new LinkedList<>();
-        for (LocalDate day : dates)
-        {
-            Demands.DailyDemand demand = demandsPerDay.get(day);
-            if (demand == null)
-            {
-                level += outputs.getOutput(day);
-                continue;
-            }
-            long produced = outputs.getOutput(day);
-
-            long levelOnDelivery;
-            if (demand.getDeliverySchema() == DeliverySchema.atDayStart)
-            {
-                levelOnDelivery = level - demand.getLevel();
-            }
-            else if (demand.getDeliverySchema() == DeliverySchema.tillEndOfDay)
-            {
-                levelOnDelivery = level - demand.getLevel() + produced;
-            }
-            else if (demand.getDeliverySchema() == DeliverySchema.every3hours)
-            {
-                // TODO WTF ?? we need to rewrite that app :/
-                throw new NotImplementedException();
-            }
-            else
-            {
-                // TODO implement other variants
-                throw new NotImplementedException();
-            }
-
-            if (!(levelOnDelivery >= 0))
-            {
-                ShortageEntity entity = new ShortageEntity();
-                entity.setRefNo(outputs.ProductRefNo);
-                entity.setFound(LocalDate.now());
-                entity.setMissing(levelOnDelivery * -1L);
-                entity.setAtDay(day);
-                gap.add(entity);
-            }
-            long endOfDayLevel = level + produced - demand.getLevel();
-            level = endOfDayLevel >= 0 ? endOfDayLevel : 0;
-        }
-        return gap;
+        return shortages;
     }
 
     private ShortageFinder()
     {
     }
+
+    private static class AlgorithmFactory implements IAlgorithmFactory {
+        private LocalDate today;
+        private int daysAhead;
+        private CurrentStock stock;
+        private List<ProductionEntity> productions;
+        private List<DemandEntity> demands;
+
+        public AlgorithmFactory(LocalDate today, int daysAhead, CurrentStock stock, List<ProductionEntity> productions, List<DemandEntity> demands) {
+            this.today = today;
+            this.daysAhead = daysAhead;
+            this.stock = stock;
+            this.productions = productions;
+            this.demands = demands;
+        }
+
+        public Algorithm create() {
+            List<LocalDate> dates = Stream.iterate(today, date -> date.plusDays(1))
+                    .limit(daysAhead)
+                    .collect(toList());
+
+            ProductionOutputs outputs = new ProductionOutputs(productions);
+            Demands demandsPerDay = new Demands(demands);
+
+            return new Algorithm(stock, dates, outputs, demandsPerDay);
+        }
+    }
+
 }

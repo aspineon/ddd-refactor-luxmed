@@ -6,13 +6,13 @@ import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 
-public class ProductionPlan
+public class ProductionOutputs
 {
 
     private final HashMap<LocalDate, ProductionEntity> outputs;
     public String ProductRefNo;
 
-    public ProductionPlan(List<ProductionEntity> productions)
+    public ProductionOutputs(List<ProductionEntity> productions)
     {
         outputs = new HashMap<>();
         for (ProductionEntity production : productions)
