@@ -16,7 +16,6 @@ public class ProductionOutputs
     {
         outputs = new HashMap<>();
         for (ProductionEntity production : productions)
-
         {
             outputs.put(production.getStart().toLocalDate(), production);
             ProductRefNo = production.getForm().getRefNo();
