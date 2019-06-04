@@ -1,36 +1,20 @@
 package shortage.prediction;
 
-import entities.ProductionEntity;
-
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.Map;
 
 public class ProductionOutputs
 {
-
-    private final HashMap<LocalDate, List<ProductionEntity>> outputs;
+    private final Map<LocalDate, Long> outputs;
     public String ProductRefNo;
 
-    public ProductionOutputs(List<ProductionEntity> productions)
+    public ProductionOutputs(Map<LocalDate, Long> outputs)
     {
-        outputs = new HashMap<>();
-        for (ProductionEntity production : productions)
-        {
-            outputs.computeIfAbsent(production.getStart().toLocalDate(), localDate -> new ArrayList<>());
-            ProductRefNo = production.getForm().getRefNo();
-        }
+        this.outputs = outputs;
     }
 
     public long getOutput(LocalDate day)
     {
-        List<ProductionEntity> production = outputs.get(day);
-        long output = 0;
-        for (ProductionEntity entity : production)
-        {
-            output += entity.getOutput();
-        }
-        return output;
+        return outputs.getOrDefault(day, 0L);
     }
 }
