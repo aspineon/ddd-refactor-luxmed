@@ -20,7 +20,7 @@ class AlgorithmFactory implements IAlgorithmFactory
     private int daysAhead;
     private CurrentStock stock;
     ProductionOutputsACLRepository productions;
-    DemandsACLRepository demands;
+    DemandsRepository demands;
 
     public AlgorithmFactory(LocalDate today, int daysAhead, CurrentStock stock, List<ProductionEntity> productions, List<DemandEntity> demands)
     {
