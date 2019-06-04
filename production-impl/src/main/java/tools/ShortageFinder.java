@@ -5,6 +5,7 @@ import entities.ProductionEntity;
 import entities.ShortageEntity;
 import enums.DeliverySchema;
 import external.CurrentStock;
+import shortage.prediction.ProductionPlan;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.time.LocalDate;
@@ -45,13 +46,7 @@ public class ShortageFinder
                 .limit(daysAhead)
                 .collect(toList());
 
-        String productRefNo = null;
-        HashMap<LocalDate, ProductionEntity> outputs = new HashMap<>();
-        for (ProductionEntity production : productions)
-        {
-            outputs.put(production.getStart().toLocalDate(), production);
-            productRefNo = production.getForm().getRefNo();
-        }
+        ProductionPlan outputs = new ProductionPlan(productions);
         HashMap<LocalDate, DemandEntity> demandsPerDay = new HashMap<>();
         for (DemandEntity demand1 : demands)
         {
@@ -66,19 +61,10 @@ public class ShortageFinder
             DemandEntity demand = demandsPerDay.get(day);
             if (demand == null)
             {
-                ProductionEntity production = outputs.get(day);
-                if (production != null)
-                {
-                    level += production.getOutput();
-                }
+                level += outputs.getOutput(day);
                 continue;
             }
-            long produced = 0;
-            ProductionEntity production = outputs.get(day);
-            if (production != null)
-            {
-                produced = production.getOutput();
-            }
+            long produced = outputs.getOutput(day);
 
             long levelOnDelivery;
             if (Util.getDeliverySchema(demand) == DeliverySchema.atDayStart)
@@ -95,7 +81,7 @@ public class ShortageFinder
                 throw new NotImplementedException();
             }
             else
-                {
+            {
                 // TODO implement other variants
                 throw new NotImplementedException();
             }
@@ -103,7 +89,7 @@ public class ShortageFinder
             if (!(levelOnDelivery >= 0))
             {
                 ShortageEntity entity = new ShortageEntity();
-                entity.setRefNo(productRefNo);
+                entity.setRefNo(outputs.ProductRefNo);
                 entity.setFound(LocalDate.now());
                 entity.setMissing(levelOnDelivery * -1L);
                 entity.setAtDay(day);
