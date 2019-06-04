@@ -3,13 +3,14 @@ package shortage.prediction;
 import entities.ProductionEntity;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
 public class ProductionOutputs
 {
 
-    private final HashMap<LocalDate, ProductionEntity> outputs;
+    private final HashMap<LocalDate, List<ProductionEntity>> outputs;
     public String ProductRefNo;
 
     public ProductionOutputs(List<ProductionEntity> productions)
@@ -17,22 +18,19 @@ public class ProductionOutputs
         outputs = new HashMap<>();
         for (ProductionEntity production : productions)
         {
-            outputs.put(production.getStart().toLocalDate(), production);
+            outputs.computeIfAbsent(production.getStart().toLocalDate(), localDate -> new ArrayList<>());
             ProductRefNo = production.getForm().getRefNo();
         }
     }
 
     public long getOutput(LocalDate day)
     {
-        ProductionEntity production = outputs.get(day);
-        if (production != null)
+        List<ProductionEntity> production = outputs.get(day);
+        long output = 0;
+        for (ProductionEntity entity : production)
         {
-            return production.getOutput();
+            output += entity.getOutput();
         }
-        else
-        {
-            return 0;
-        }
-
+        return output;
     }
 }
