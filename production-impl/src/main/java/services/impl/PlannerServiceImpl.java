@@ -21,7 +21,8 @@ import java.time.LocalDateTime;
 import java.util.LinkedList;
 import java.util.List;
 
-public class PlannerServiceImpl implements PlannerService {
+public class PlannerServiceImpl implements PlannerService
+{
 
     //Inject all
     private ProductionDao productionDao;
@@ -54,14 +55,17 @@ public class PlannerServiceImpl implements PlannerService {
      */
     //Transactional
     @Override
-    public void scheduleNewProduction(long lineId, long formId, LocalDateTime start, Duration duration) {
+    public void scheduleNewProduction(long lineId, long formId, LocalDateTime start, Duration duration)
+    {
         LineEntity line = lineDao.find(lineId);
         FormEntity form = formDao.find(formId);
 
-        if (!Util.canProduceOn(line, form)) {
+        if (!Util.canProduceOn(line, form))
+        {
             // TODO Ask: what in that case ?
         }
-        if (!Util.isFormAvailableAt(form, start, duration)) {
+        if (!Util.isFormAvailableAt(form, start, duration))
+        {
             // TODO Ask: what in that case ?
         }
         List<ProductionEntity> currentlyPlanned = productionDao.findFromTime(line.getId(), start);
@@ -69,20 +73,26 @@ public class PlannerServiceImpl implements PlannerService {
         // If preceding production use same from, retooling time between is zero.
         ProductionEntity preceding = null;
         Duration startDuration = Duration.ofMinutes(0);
-        if (currentlyPlanned.size() > 0) {
+        if (currentlyPlanned.size() > 0)
+        {
             ProductionEntity first = currentlyPlanned.get(0);
-            if (first.getStart().isBefore(start)) {
+            if (first.getStart().isBefore(start))
+            {
                 preceding = first;
-                if (!first.getForm().equals(form)) {
+                if (!first.getForm().equals(form))
+                {
                     startDuration = form.getStartAndWormUp();
                 }
             }
         }
         // If next production use same from, retooling time between is zero.
         Duration cleanDuration = Duration.ofMinutes(0);
-        for (ProductionEntity next : currentlyPlanned) {
-            if (next.getStart().isAfter(start) || next.getStart().isEqual(start)) {
-                if (!next.getForm().equals(form)) {
+        for (ProductionEntity next : currentlyPlanned)
+        {
+            if (next.getStart().isAfter(start) || next.getStart().isEqual(start))
+            {
+                if (!next.getForm().equals(form))
+                {
                     cleanDuration = form.getEndAndCleaning();
                 }
                 break;
@@ -127,17 +137,21 @@ public class PlannerServiceImpl implements PlannerService {
      */
     //Transactional
     @Override
-    public void adjustProductionTime(long productionId, LocalDateTime start, Duration duration) {
+    public void adjustProductionTime(long productionId, LocalDateTime start, Duration duration)
+    {
         ProductionEntity production = productionDao.get(productionId);
         FormEntity form = production.getForm();
-        if (!Util.isFormAvailableAt(form, start, duration)) {
+        if (!Util.isFormAvailableAt(form, start, duration))
+        {
             // TODO Ask: what in that case ?
         }
         List<ProductionEntity> currentlyPlanned = productionDao.findFromTime(production.getLine().getId(), start);
         ProductionEntity preceding = null;
-        if (currentlyPlanned.size() > 0) {
+        if (currentlyPlanned.size() > 0)
+        {
             ProductionEntity first = currentlyPlanned.get(0);
-            if (first.getStart().isBefore(start)) {
+            if (first.getStart().isBefore(start))
+            {
                 preceding = first;
             }
         }
@@ -151,7 +165,8 @@ public class PlannerServiceImpl implements PlannerService {
 
     //Transactional
     @Override
-    public void setColor(long productionId, String color) {
+    public void setColor(long productionId, String color)
+    {
         // just sets color of production block on screen
         ProductionEntity production = productionDao.get(productionId);
         production.setColor(color);
@@ -159,7 +174,8 @@ public class PlannerServiceImpl implements PlannerService {
 
     //Transactional
     @Override
-    public void setNote(long productionId, String note) {
+    public void setNote(long productionId, String note)
+    {
         // adds planner note for shift manager or production engineer
         ProductionEntity production = productionDao.get(productionId);
         production.setColor(note);
@@ -167,33 +183,41 @@ public class PlannerServiceImpl implements PlannerService {
 
     //ReadOnly
     @Override
-    public PlanViewDto getPlan(long line) {
+    public PlanViewDto getPlan(long line)
+    {
         return new PlanViewDto();
     }
 
     public List<ProductionEntity> makeSpace(ProductionEntity preceding,
                                             List<ProductionEntity> currentlyPlanned,
-                                            LocalDateTime start, Duration duration) {
+                                            LocalDateTime start, Duration duration)
+    {
         List<ProductionEntity> changed = new LinkedList<>();
 
-        if (preceding != null && overlaps(preceding.getStart(), preceding.getDuration(), start, duration)) {
+        if (preceding != null && overlaps(preceding.getStart(), preceding.getDuration(), start, duration))
+        {
             // If production on given line overlaps with other: preceding must shrink
             preceding.setDuration(Duration.between(preceding.getStart(), start));
             changed.add(preceding);
         }
         LocalDateTime lastStart = start;
         Duration lastDuration = duration;
-        for (ProductionEntity production : currentlyPlanned) {
-            if (production == preceding) {
+        for (ProductionEntity production : currentlyPlanned)
+        {
+            if (production == preceding)
+            {
                 continue;
             }
-            if (overlaps(production.getStart(), production.getDuration(), lastStart, lastDuration)) {
+            if (overlaps(production.getStart(), production.getDuration(), lastStart, lastDuration))
+            {
                 // If production on given line overlaps with other: *ALL* succeeding one must start later.
                 production.setStart(lastStart.plus(lastDuration));
                 lastStart = production.getStart();
                 lastDuration = production.getDuration();
                 changed.add(production);
-            } else {
+            }
+            else
+            {
                 break;
             }
         }
@@ -212,17 +236,21 @@ public class PlannerServiceImpl implements PlannerService {
      *        | --- second --- |
      * </pre>
      */
-    private boolean overlaps(LocalDateTime start, Duration duration, LocalDateTime lastStart, Duration lastDuration) {
+    private boolean overlaps(LocalDateTime start, Duration duration, LocalDateTime lastStart, Duration lastDuration)
+    {
         LocalDateTime firstStart;
         Duration firstDuration;
         LocalDateTime secondStart;
         Duration secondDuration;
-        if (start.isBefore(lastStart)) {
+        if (start.isBefore(lastStart))
+        {
             firstStart = start;
             firstDuration = duration;
             secondStart = lastStart;
             secondDuration = lastDuration;
-        } else {
+        }
+        else
+        {
             firstStart = lastStart;
             firstDuration = lastDuration;
             secondStart = start;
@@ -234,10 +262,12 @@ public class PlannerServiceImpl implements PlannerService {
                 ;
     }
 
-    private void processShortages(List<ProductionEntity> products) {
+    private void processShortages(List<ProductionEntity> products)
+    {
         LocalDate today = LocalDate.now(clock);
 
-        for (ProductionEntity production : products) {
+        for (ProductionEntity production : products)
+        {
             CurrentStock currentStock = stockService.getCurrentStock(production.getForm().getRefNo());
             List<ShortageEntity> shortages = ShortageFinder.findShortages(
                     today, confShortagePredictionDaysAhead,
@@ -246,16 +276,19 @@ public class PlannerServiceImpl implements PlannerService {
                     demandDao.findFrom(today.atStartOfDay(), production.getForm().getRefNo())
             );
             List<ShortageEntity> previous = shortageDao.getForProduct(production.getForm().getRefNo());
-            if (!shortages.isEmpty() && !shortages.equals(previous)) {
+            if (!shortages.isEmpty() && !shortages.equals(previous))
+            {
                 notificationService.markOnPlan(shortages);
                 if (currentStock.getLocked() > 0 &&
                         shortages.get(0).getAtDay()
-                                .isBefore(today.plusDays(confIncreaseQATaskPriorityInDays))) {
+                                .isBefore(today.plusDays(confIncreaseQATaskPriorityInDays)))
+                {
                     jiraService.increasePriorityFor(production.getForm().getRefNo());
                 }
                 shortageDao.save(shortages);
             }
-            if (shortages.isEmpty() && !previous.isEmpty()) {
+            if (shortages.isEmpty() && !previous.isEmpty())
+            {
                 shortageDao.delete(production.getForm().getRefNo());
             }
         }
