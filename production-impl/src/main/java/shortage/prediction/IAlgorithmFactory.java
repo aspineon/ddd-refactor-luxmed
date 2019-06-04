@@ -1,5 +1,6 @@
 package shortage.prediction;
 
-public interface IAlgorithmFactory {
+public interface IAlgorithmFactory
+{
     Algorithm create();
 }

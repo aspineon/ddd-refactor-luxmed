@@ -22,7 +22,8 @@ public class ProductionOutputs
         }
     }
 
-    public long getOutput(LocalDate day) {
+    public long getOutput(LocalDate day)
+    {
         ProductionEntity production = outputs.get(day);
         if (production != null)
         {
